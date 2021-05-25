@@ -209,6 +209,7 @@ classdef autopipeliner
             [yesOrNo2,folderPathPre] = autopipeliner.alreadyHasFolder(folderName,'pre');
             if ~yesOrNo2
                 mkdir (folderName,  'pre');; % creates new folder
+                folderPathPre = strcat(folderPath,'\pre');
             end
             
             %cd(folderPath); %goes to last file location
@@ -216,7 +217,7 @@ classdef autopipeliner
             setfiles = dir('*.set'); %gets set files
             %------
             %filePRE = strcat(folderPath,'\pre');
-            filesPRE = folderPathPre;
+            %filesPRE = folderPathPre;
             filesPOST = filePath;
             if length(fdtfiles) > 1 | length(setfiles) > 1
                 

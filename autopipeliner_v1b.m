@@ -3,9 +3,11 @@
 % email: ugobruzadin at gmail dot com
 % Dec 2019/Jan2020
 
-classdef autopipeliner_v1.0a
+classdef autopipeliner_v1b
     methods(Static)
         
+        %autopipeliner_v1b = dbstack;
+        %autopipeliner_v1b = st.name;
         function folder = getLastFolder(currentDirectory)
             
             folders = dir(currentDirectory);
@@ -21,7 +23,7 @@ classdef autopipeliner_v1.0a
             if size(subFolders,1) > 2
                 if size(subFolders,1) > 3
                 folder = strcat(subFolders(end).folder,'/',subFolders(end).name,'/');
-                %folder = autopipeliner.getLastFolder(folder);
+                %folder = autopipeliner_v1b.getLastFolder(folder);
                 end
             else
                 folder = currentDirectory;
@@ -75,20 +77,20 @@ classdef autopipeliner_v1.0a
                 batchName = char(strcat('batch_',num2str(batchCounter))); 
                 
                 % --- creates batch folder (moves folders)
-                [batchFolder] = autopipeliner.createBatchFolder(OGFolder,files,batchName); 
+                [batchFolder] = autopipeliner_v1b.createBatchFolder(OGFolder,files,batchName); 
                 
                 % --- returns to OG folder
-                cd(OGFolder)
+                %cd(OGFolder)
                 
                 % --- starts pipeline
-                [batchFolder] = autopipeliner.pipeIn(batches(i),OGFolder); %start the pipeline
+                [batchFolder] = autopipeliner_v1b.pipeIn(batches(i),batchFolder); %start the pipeline
                 
                 % --- adds +1 to batch counter
                 batchCounter = batchCounter+1; 
             end
         end
         
-        function [filesFolder] = pipeIn(scripts,OGFolder) %store the functions to be rolled in this batch
+        function [filesFolder] = pipeIn(scripts,batchFolder) %store the functions to be rolled in this batch
             % --- print
             fprintf('starting pipeline \r');
             
@@ -98,38 +100,39 @@ classdef autopipeliner_v1.0a
             %commands = table2array(commands); %gets the array of commands to be pipelined
             % --- counter of scripts
             % --- need to add a function to identify num of scripts already run
-            scriptCounter = 0; %start a counter of folders/commands to be run
+            scriptCounter = 1; %start a counter of folders/commands to be run
             % --- print
             %fprintf('checking for pipeline folders');
             
             % --- goes to original folder
             % add: if counter = 0, fileFolders=ogfolder, end
-            filesFolder = OGFolder; %begins with the files inside the main batch folder
+            filesFolder = batchFolder; %begins with the files inside the main batch folder
             
             % --- for loop run for each script
             for i=scriptCounter:length(scripts) %for loop, loops the number of commands
                 
                 % --- run Function for each script in a batch
-                [filesFolder] = autopipeliner.Function(OGFolder,scripts(i),filesFolder,scriptCounter);
+                fprintf('running Function');
+                [filesFolder] = autopipeliner_v1b.Function(batchFolder,scripts(i),filesFolder,scriptCounter);
                 
                 %folderCounter = folderCounter + 1;%adds one folder to the counter
                 scriptCounter = scriptCounter + 1;%adds one folder to the counter
             end
         end
         
-        function [filePOST] = Function(OGFolder,script,filesPath,counter) %magic function, runs the code asked!
+        function [filePOST] = Function(batchFolder,script,filesFolder,counter) %magic function, runs the code asked!
             if nargin < 4
                 counter = 0;
             end
             if nargin < 3
-                filesPath = pwd;
+                filesFolder = pwd;
                 counter = 0;
             end
             % --- collects script instructions in an array
             script = table2array(script);
             
             % --- cleans memory (not sure if works)
-            %autopipeliner.clean(); %wipe the memory
+            autopipeliner_v1b.clean(); %wipe the memory
             
             % --- gets date and time
             t = datetime('now','TimeZone','local','Format','dMMMy-HH.mm'); %gets the datetime
@@ -138,7 +141,7 @@ classdef autopipeliner_v1.0a
             fname = strcat(mfilename,'.'); %get the name of this function for future use, adds a dot to it
             
             % --- moves to the last path where files were
-            cd(filesPath); 
+            cd(filesFolder); 
             % --- starts a timer; to be added to approximate time to finish
             %tic; 
             
@@ -146,12 +149,11 @@ classdef autopipeliner_v1.0a
             folderLetter = char(counter+64); %names the folder initial letter (A, B, etc)!
             folderNameDate = strcat(folderLetter,'-',char(script(1)),'-',char(t)); %makes folder full name
             folderName = strcat(folderLetter,'-',char(script(1))); %makes folder partial name
-            
-            [files, filePRE, filePOST] = autopipeliner.createfolders(filesPath,OGFolder,folderPath,folderNameDate); %creates a folder for the pipeline
 
+            [files, filePRE, filePOST] = autopipeliner_v1b.createfolders(batchFolder,filesFolder,folderNameDate,counter); %creates a folder for the pipeline
             % --- moves down to scripts new directory
             cd(filePOST);
-            parfor i=1:length(files)
+            for i=1:length(files)
                 
                 % --- load EEG
                 EEG = pop_par_loadset(files(i).name, filePRE,  'all','all','all','all','auto');
@@ -160,7 +162,7 @@ classdef autopipeliner_v1.0a
                 % --- call the function = can be susbtituted for a script in the future
                 % -- functions are always named "pipe_" and contain the
                 % -- name and instructions to be performed
-                try
+                %try
                     % --- action is creates a function out of string in
                     % -- script(1) and runs it the script it refers to
                     action = str2func(strcat('pipe_',char(script(1)))); %this call a function inside this function with the name asked for!
@@ -180,22 +182,22 @@ classdef autopipeliner_v1.0a
                     % --- saves file with new name on script's folder
                     EEG = pop_par_saveset(EEG, 'filename', [newname], 'filepath', filePOST);
                 
-                catch
-                    % --- catches errors, makes filename with ERROR instead
-                    acronym = strcat('ERROR_',char(script(1)));
-                    newname = strcat(files(i).name(1:end-4), [acronym], '.set');
-                    
-                    % --- saves file with ERROR on filename
-                    EEG = pop_par_saveset(EEG, 'filename', [newname], 'filepath',strcat(filePOST,'/ERROR/'));
-                end
+%                 catch
+%                     % --- catches errors, makes filename with ERROR instead
+%                     acronym = strcat('ERROR_',char(script(1)));
+%                     newname = strcat(files(i).name(1:end-4), [acronym], '.set');
+%                     
+%                     % --- saves file with ERROR on filename
+%                     EEG = pop_par_saveset(EEG, 'filename', [newname], 'filepath',strcat(filePOST,'/ERROR/'));
+%                 end
                 % --- not sure this does anything
                 EEG = pop_delset(EEG,1); %fixed and added 2/3/2020
             end
 
             %cleaning the folder from binica trash
-            %autopipeliner.emptyTrash(); %deletes binica's leftover trash
+            %autopipeliner_v1b.emptyTrash(); %deletes binica's leftover trash
             %sends text to me
-            %autopipeliner.txt(strcat('processing of ', folderNameDate,' is over')); %fixed and added 2/3/2020
+            %autopipeliner_v1b.txt(strcat('processing of ', folderNameDate,' is over')); %fixed and added 2/3/2020
         %fixed and added 2/3/2020
         end
                        
@@ -217,61 +219,37 @@ classdef autopipeliner_v1.0a
             close all;   % close all figures
         end
         
-        function [setfiles, filesPRE, filesPOST] = createfolders(filePath,batchFolder,folderPath,folderName,yesOrNo)
+        function [setfiles, filesPRE, filesPOST] = createfolders(batchFolder,previousFolderPath,folderName,counter)
             %------ create the folders where the pipeline will run
             %------ filePRE = strcat(basefolder,'\', type, '\pre'); %copies files
             %------ one can I turn it off)
-            cd(filePath) % - goes to last path's folder
-            % --- is there already a folder? if not, make new folder
+            cd(batchFolder) % - goes to last path's folder
+
+            % --- add: is there already a folder? if not, make new folder
+ 
+            % --- makes Script directory
             
-            [yesOrNo, folderPath, folderName2] = autopipeliner.alreadyHasFolder(batchFolder,folderName);  %checks if a folder with name already exist
-            
-            if ~yesOrNo                
-                mkdir (folderName); % creates new folder
+            mkdir (folderName); % creates new folder
+            cd (strcat(pwd, '/',folderName));
+            filesPOST = pwd;
+            mkdir ('Pre'); % creates new folder
+            cd (strcat(pwd, '/Pre'));
+            filesPRE = pwd;
+            if counter == 0
+                cd(batchFolder)
+            else
+                cd(previousFolderPath)
             end
-            % --- is there already a 'pre' folder? if not, make new pre folder
-            [yesOrNo2,folderPathPre] = autopipeliner.alreadyHasFolder(folderName,'pre');
-            if ~yesOrNo2
-                mkdir (folderName,  'pre'); % creates new folder
-            end
-            Sfdtfiles = dir('*.fdt'); %gets fdt files
-            Ssetfiles = dir('*.set'); %gets set files
-            cd(folderPath); %goes to last file location
             fdtfiles = dir('*.fdt'); %gets fdt files
             setfiles = dir('*.set'); %gets set files
-            %------
-            %filePRE = strcat(folderPath,'\pre');
-            filesPRE = folderPathPre;
-            filesPOST = folderPath;
-            while isempty(setfiles)
-                cd ..
-                filesPOST = pwd;
-                fdtfiles = dir('*.fdt'); %gets fdt files
-                setfiles = dir('*.set'); %gets set files
+            %filesPRE = strcat(filesPOST,'\pre');
+
+            parfor j=1:length(setfiles)
+                movefile(setfiles(j).name, filesPRE)
             end
-            %cd (filesPRE);
-            
-            if length(fdtfiles) > 1 || length(setfiles) > 1
-                [setList,fdtList] = autopipeliner.comparefiles(filesPRE,filesPOST);
+            parfor i=1:length(fdtfiles)
+                movefile(fdtfiles(i).name, filesPRE);
             end
-            %------
-            % compares if there are already files in that folder
-                %[setList,fdtList] = autopipeliner.comparefiles(filesPRE,filesPOST);
-                cd(filePath) % - goes to batches's folder
-                if length(setfiles) > 1
-                parfor j=1:length(setList)
-                 movefile(setList(j).name, filesPRE)
-                end
-                end
-                if length(fdtfiles) > 1
-                parfor i=1:length(fdtList)
-                    movefile(fdtList(i).name, filesPRE);
-                end
-                end
-            %else
-            %    cd(folderPathPre)
-            %    setfiles = dir('*.set');
-            %end
         end
         
         function [setList,fdtList] = comparefiles(pre,post)
@@ -312,22 +290,17 @@ classdef autopipeliner_v1.0a
             %------ one can I turn it off)
             
             basefolder = path;
-            if path(end-2:end) ~= 'pre'
-                mkdir (folderName)
-                fdtfiles = dir('*.fdt');
-                batchFolder = strcat(basefolder,'\', folderName);
-                %if savecopy
-                parfor i=1:length(files)
-                    copyfile(files(i).name, batchFolder)
-                    copyfile(fdtfiles(i).name, batchFolder);
-                end
-            else
-                cd ..
-                cd ..
-                batchFolder = pwd;
-                cd(basefolder);
+            
+            mkdir (folderName)
+            fdtfiles = dir('*.fdt');
+            batchFolder = strcat(basefolder,'\', folderName);
+            
+            % --- add: compare files
+            parfor i=1:length(files)
+                copyfile(files(i).name, batchFolder)
+                copyfile(fdtfiles(i).name, batchFolder);
             end
-            %end
+         
         end
         
         function txt(content) %doesnt work anymore 
@@ -412,7 +385,7 @@ classdef autopipeliner_v1.0a
                 counter = 0;
             end
             files = dir('*.set');
-            autopipeliner.clean(); %wipe the memory
+            autopipeliner_v1b.clean(); %wipe the memory
             t = datetime('now','TimeZone','local','Format','dMMMy-HH.mm'); %gets the datetime
             fname = strcat(mfilename,'.'); %get the name of this function for future use, adds a dot to it
             cd(filePath); %moves the the last path where files were
@@ -422,21 +395,21 @@ classdef autopipeliner_v1.0a
                 EEG = pop_loadset(files(i).name, filePath,  'all','all','all','all','auto');
                 EEG = eeg_checkset(EEG);
                 %action = str2func(strcat(fname,char(commands(1)))); %this call a function inside this function with the name asked for!
-                %[individualReport] = autopipeliner.tempReport(files(i).name,EEG);%changedneedsfixing
+                %[individualReport] = autopipeliner_v1b.tempReport(files(i).name,EEG);%changedneedsfixing
                 
                 %EEG = pop_saveset(EEG, 'filename', [newname], 'filepath',filePOST);
                 [individualReport] = pipe_individualreport(files(i).name,EEG);
                 writetable(cell2table(individualReport),strcat(files(i).name(1:end-4),'_report.txt')); %saves the table in .mat format
-                autopipeliner.fft(files(i),EEG);
+                autopipeliner_v1b.fft(files(i),EEG);
                 if ~isempty(EEG.icaweights)
-                    autopipeliner.componentFigures(files(i),EEG) %fixed and added 2/3/2020
+                    autopipeliner_v1b.componentFigures(files(i),EEG) %fixed and added 2/3/2020
                 end
                 EEG = pop_delset(EEG,1); %fixed and added 2/3/2020
             end
             %makes report
-            autopipeliner.report(strcat('finalReport',t)); %fixed and added 2/3/2020
-            autopipeliner.emptyTrash(); %deletes binica's leftover trash
-            autopipeliner.txt(strcat('processing of ', folderNameDate,' is over')); %fixed and added 2/3/2020
+            autopipeliner_v1b.report(strcat('finalReport',t)); %fixed and added 2/3/2020
+            autopipeliner_v1b.emptyTrash(); %deletes binica's leftover trash
+            autopipeliner_v1b.txt(strcat('processing of ', folderNameDate,' is over')); %fixed and added 2/3/2020
         end
     end
 end
