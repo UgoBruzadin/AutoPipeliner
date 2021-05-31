@@ -57,12 +57,14 @@ classdef autopipeliner_v1b
             end
         end
         
-        function batches(batches,batchFolder) %store all batches to be done
-            
+        function batches(batches,batchFolder,batchCounter) %store all batches to be done
+            if nargin < 3
+                batchCounter = 1;
+            end
             % --- gets current folder
             OGFolder = batchFolder;
             % --- counter of how many bathes are being run
-            batchCounter = 1;
+            %batchCounter = 1;
             
             % --- for loop for each batch to be run
             for i=1:length(batches)
@@ -153,7 +155,7 @@ classdef autopipeliner_v1b
             [files, filePRE, filePOST] = autopipeliner_v1b.createfolders(batchFolder,filesFolder,folderNameDate,counter); %creates a folder for the pipeline
             % --- moves down to scripts new directory
             cd(filePOST);
-            for i=1:length(files)
+            parfor i=1:length(files)
                 
                 % --- load EEG
                 EEG = pop_par_loadset(files(i).name, filePRE,  'all','all','all','all','auto');
