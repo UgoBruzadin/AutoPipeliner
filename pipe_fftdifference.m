@@ -1,19 +1,20 @@
+function [EEG, acronym] = pipe_fftdifference(EEG, actions, folder)
+
+%code adapted from Matthew Gunn, all credits go for his ingenious code
 
 %under construction
+actions = table2array(actions);
 
-
-clc
-clear
 path1 = pwd;
-path2 = strcat(path1, '/12ICL55TEST_Pre'); %Where the Pre Files are located
-cd (path2);
-filePre1 = dir('*.set');
-path3 = strcat(path1, '/12ICL55TEST_Post'); %Where the Post Files are located
+%path2 = strcat(path1, '/12ICL55TEST_Pre'); %Where the Pre Files are located
+%cd (path2);
+%filePre1 = dir('*.set');
+%path3 = strcat(path1, '/12ICL55TEST_Post'); %Where the Post Files are located
 cd (path3);
 filePost2 = dir('*.set');
 cd (path1);
 
-ProcessComparing = ('BSS Effect Test');
+ProcessComparing = ('????');
 FreqList = [12 14 16 20 30]; % Fregs you want to plot
 reallimits = [NaN NaN]; % y-axis range for Comparison plot
 AbsoluteRelativeMapColor = [NaN NaN]; %[NaN NaN] mean do relative coloring on Topo Maps
@@ -33,8 +34,8 @@ parfor i=1:length(filePre1)
     saveas(gcf,[num2str(i) 'Pre.jpg'])
     close(gcf)
     
-    % For Pre Figure
-    EEG2 = pop_loadset(filePost2(i).name, path3);
+    % For Post Figure
+    EEG2 = EEG;
     [x2, y2] = pop_spectopo(EEG2, 1, [EEG2.xmin*10^3  EEG2.xmax*10^3], 'EEG' , 'freq', FreqList, 'freqrange',[minfreqidx maxfreqidx], 'electrodes','off', 'limits', [0 60 minfreqForPreAndPost maxfreqForPreAndPost NaN NaN]);
     sgtitle(strcat( filePost2(i).name(1:10),' Post or File2'));
     cd (path3);
