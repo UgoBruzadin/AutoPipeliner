@@ -1,0 +1,6 @@
+function EEG = pop_ugo(EEG)
+
+uimenu(fig,'label', 'UGO','callback',...
+  ['EEG=pop_ugo(EEG); ...
+  [ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG, CURRENTSET);' ]);
+end

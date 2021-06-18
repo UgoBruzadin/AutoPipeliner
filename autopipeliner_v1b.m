@@ -57,7 +57,7 @@ classdef autopipeliner_v1b
             end
         end
         
-        function batches(batches,batchFolder,batchCounter) %store all batches to be done
+        function [batchFolder, OGFolder] = batches(batches,batchFolder,batchCounter) %store all batches to be done
             if nargin < 3
                 batchCounter = 1;
             end
@@ -65,47 +65,54 @@ classdef autopipeliner_v1b
             OGFolder = batchFolder;
             % --- counter of how many bathes are being run
             %batchCounter = 1;
-            
+            %batches = batches{:};
             % --- for loop for each batch to be run
             for i=1:length(batches)
-                
                 % --- move to OG folder
                 cd(OGFolder);
-               
                 % --- gets files in OG folder
                 files = dir('*.set');
-                
                 % --- names batch to "Batch"+number of the batch
                 batchName = char(strcat('batch_',num2str(batchCounter))); 
-                
                 % --- creates batch folder (moves folders)
                 [batchFolder] = autopipeliner_v1b.createBatchFolder(OGFolder,files,batchName); 
-                
                 % --- returns to OG folder
                 %cd(OGFolder)
-                
                 % --- starts pipeline
-                [batchFolder] = autopipeliner_v1b.pipeIn(batches(i),batchFolder); %start the pipeline
-                
+                [batchFolder] = autopipeliner_v1b.pipeline(batches(i),batchFolder); %start the pipeline
                 % --- adds +1 to batch counter
                 batchCounter = batchCounter+1; 
             end
         end
         
-        function [filesFolder] = pipeIn(scripts,batchFolder) %store the functions to be rolled in this batch
+        function [batchFolder] = createBatchFolder(path,files,folderName)
+            %------ create the folders where the pipeline will run
+            %------ filePRE = strcat(basefolder,'\', type, '\pre'); %copies files
+            %------ one can I turn it off)
+            
+            basefolder = path;
+            
+            mkdir (folderName)
+            fdtfiles = dir('*.fdt');
+            batchFolder = strcat(basefolder,'\', folderName);
+            
+            % --- add: compare files
+            for i=1:length(files)
+                copyfile(files(i).name, batchFolder)
+                copyfile(fdtfiles(i).name, batchFolder);
+            end
+         
+        end
+        
+        function [filesFolder] = pipeline(scripts,batchFolder) %store the functions to be rolled in this batch
             % --- print
             fprintf('starting pipeline \r');
-            
             % --- collects list of scripts to be performed in an array
-            scripts = table2array(scripts);
-            
+            scripts = scripts{:};
             %commands = table2array(commands); %gets the array of commands to be pipelined
             % --- counter of scripts
             % --- need to add a function to identify num of scripts already run
             scriptCounter = 1; %start a counter of folders/commands to be run
-            % --- print
-            %fprintf('checking for pipeline folders');
-            
             % --- goes to original folder
             % add: if counter = 0, fileFolders=ogfolder, end
             filesFolder = batchFolder; %begins with the files inside the main batch folder
@@ -116,13 +123,11 @@ classdef autopipeliner_v1b
                 % --- run Function for each script in a batch
                 fprintf('running Function');
                 [filesFolder] = autopipeliner_v1b.Function(batchFolder,scripts(i),filesFolder,scriptCounter);
-                
-                %folderCounter = folderCounter + 1;%adds one folder to the counter
                 scriptCounter = scriptCounter + 1;%adds one folder to the counter
             end
         end
         
-        function [filePOST] = Function(batchFolder,script,filesFolder,counter) %magic function, runs the code asked!
+        function [filePOST] = Function(batchFolder,scripts,filesFolder,counter) %magic function, runs the code asked!
             if nargin < 4
                 counter = 0;
             end
@@ -131,96 +136,101 @@ classdef autopipeliner_v1b
                 counter = 0;
             end
             % --- collects script instructions in an array
-            script = table2array(script);
-            
-            % --- cleans memory (not sure if works)
-            autopipeliner_v1b.clean(); %wipe the memory
-            
+            scripts = scripts{:};
             % --- gets date and time
             t = datetime('now','TimeZone','local','Format','dMMMy-HH.mm'); %gets the datetime
-            
             % --- makes a name for the function
             fname = strcat(mfilename,'.'); %get the name of this function for future use, adds a dot to it
-            
             % --- moves to the last path where files were
             cd(filesFolder); 
             % --- starts a timer; to be added to approximate time to finish
             %tic; 
-            
-            % --- organizing folders
+            % --- creates folder name
             folderLetter = char(counter+64); %names the folder initial letter (A, B, etc)!
-            folderNameDate = strcat(folderLetter,'-',char(script(1)),'-',char(t)); %makes folder full name
-            folderName = strcat(folderLetter,'-',char(script(1))); %makes folder partial name
-
+            folderNameDate = strcat(folderLetter,'-',char(scripts(1)),'-',char(t)); %makes folder full name
+            folderName = strcat(folderLetter,'-',char(scripts(1))); %makes folder partial name
             [files, filePRE, filePOST] = autopipeliner_v1b.createfolders(batchFolder,filesFolder,folderNameDate,counter); %creates a folder for the pipeline
             % --- moves down to scripts new directory
             cd(filePOST);
-            parfor i=1:length(files)
-                
+            % --- gest the scripts that are not the name of the function
+            scripts2 = scripts(2:end);
+            % -- loops all files and run the function fo each one.
+            for i=1:length(files)
                 % --- load EEG
                 EEG = pop_par_loadset(files(i).name, filePRE,  'all','all','all','all','auto');
-                EEG = eeg_checkset(EEG);
+                % --- functions are always named "pipe_" and contain the
+                % --- action creates a function out of string
+                % -- scripts(1) contains the script name and runs the script it refers to
+                action = str2func(strcat('pipe_',char(scripts(1)))); %this call a function inside this function with the name asked for!
+                if length(scripts) > 1
+                    %;
+                    [EEG, acronym] = action(EEG, scripts2); %this is where the function runs the asked code!
+                else
+                    [EEG, acronym] = action(EEG); %this is where the function runs the asked code!
+                end
+                % --- makes a new name for the file, adding the acronym
+                % -- to the name
                 
-                % --- call the function = can be susbtituted for a script in the future
-                % -- functions are always named "pipe_" and contain the
-                % -- name and instructions to be performed
-                %try
-                    % --- action is creates a function out of string in
-                    % -- script(1) and runs it the script it refers to
-                    action = str2func(strcat('pipe_',char(script(1)))); %this call a function inside this function with the name asked for!
-                    
-                    % --- If function has no necessary modifiers
-                    % -- could be changed so  that the "if" is unnecessary.
-                    % --- Every function spits out EEG and an acronym for
-                    % -- naming the file later.
-                    if length(script) > 1
-                        [EEG, acronym] = action(EEG, script(2:end)); %this is where the function runs the asked code!
-                    else
-                        [EEG, acronym] = action(EEG); %this is where the function runs the asked code!
-                    end
-                    % --- makes a new name for the file, adding the acronym
-                    % -- to the name
-                    newname = strcat(files(i).name(1:end-4), [acronym], '.set');
-                    % --- saves file with new name on script's folder
-                    EEG = pop_par_saveset(EEG, 'filename', [newname], 'filepath', filePOST);
-                
-%                 catch
-%                     % --- catches errors, makes filename with ERROR instead
-%                     acronym = strcat('ERROR_',char(script(1)));
-%                     newname = strcat(files(i).name(1:end-4), [acronym], '.set');
-%                     
-%                     % --- saves file with ERROR on filename
-%                     EEG = pop_par_saveset(EEG, 'filename', [newname], 'filepath',strcat(filePOST,'/ERROR/'));
-%                 end
-                % --- not sure this does anything
+                newname = strcat(files(i).name(1:end-4), [acronym], '.set');
+                % --- saves file with new name on script's folder
+                EEG = pop_par_saveset(EEG, 'filename', [newname], 'filepath', filePOST);
+
                 EEG = pop_delset(EEG,1); %fixed and added 2/3/2020
             end
+        end
+        
+%         function [filePOST] = parFunction(batchFolder,scripts,filesFolder,counter) %magic function, runs the code asked!
+%             if nargin < 4
+%                 counter = 0;
+%             end
+%             if nargin < 3
+%                 filesFolder = pwd;
+%                 counter = 0;
+%             end
+%             % --- collects script instructions in an array
+%             scripts = scripts{:};
+%             % --- gets date and time
+%             t = datetime('now','TimeZone','local','Format','dMMMy-HH.mm'); %gets the datetime
+%             % --- makes a name for the function
+%             fname = strcat(mfilename,'.'); %get the name of this function for future use, adds a dot to it
+%             % --- moves to the last path where files were
+%             cd(filesFolder); 
+%             % --- starts a timer; to be added to approximate time to finish
+%             %tic; 
+%             % --- creates folder name
+%             folderLetter = char(counter+64); %names the folder initial letter (A, B, etc)!
+%             folderNameDate = strcat(folderLetter,'-',char(scripts(1)),'-',char(t)); %makes folder full name
+%             folderName = strcat(folderLetter,'-',char(scripts(1))); %makes folder partial name
+%             [files, filePRE, filePOST] = autopipeliner_v1b.createfolders(batchFolder,filesFolder,folderNameDate,counter); %creates a folder for the pipeline
+%             % --- moves down to scripts new directory
+%             cd(filePOST);
+%             parfor i=1:length(files)
+%                 % --- load EEG
+%                 EEG = pop_par_loadset(files(i).name, filePRE,  'all','all','all','all','auto');
+%                 scripts = scripts;
+%                 % --- call the function = can be susbtituted for a script in the future
+%                 % -- functions are always named "pipe_" and contain the
+%                 % -- name and instructions to be performed
+%                 %try
+%                     % --- action is creates a function out of string in
+%                     % -- script(1) and runs it the script it refers to
+%                     action = str2func(strcat('pipe_',char(scripts(1)))); %this call a function inside this function with the name asked for!
+%                     if length(scripts) > 1
+%                         scripts = scripts(2:end);
+%                         [EEG, acronym] = action(EEG, scripts); %this is where the function runs the asked code!
+%                     else
+%                         [EEG, acronym] = action(EEG); %this is where the function runs the asked code!
+%                     end
+%                     % --- makes a new name for the file, adding the acronym
+%                     % -- to the name
+%                     newname = strcat(files(i).name(1:end-4), [acronym], '.set');
+%                     % --- saves file with new name on script's folder
+%                     EEG = pop_par_saveset(EEG, 'filename', [newname], 'filepath', filePOST);
+% 
+%                 EEG = pop_delset(EEG,1); %fixed and added 2/3/2020
+%             end
+%         end
 
-            %cleaning the folder from binica trash
-            %autopipeliner_v1b.emptyTrash(); %deletes binica's leftover trash
-            %sends text to me
-            %autopipeliner_v1b.txt(strcat('processing of ', folderNameDate,' is over')); %fixed and added 2/3/2020
-        %fixed and added 2/3/2020
-        end
-                       
-        function emptyTrash()
-            trashBin = dir('bin*');
-            trashMat = dir('*.mat');
-            parfor i=1:length(trashBin)
-                delete (trashBin(i).name)
-            end
-            parfor i=1:length(trashMat)
-                delete (trashMat(i).name)
-            end
-        end %%%works
-        
-        function clean() %works
-            clc;         % clear command window
-            clear all;
-            evalin('base','clear all');  % clear base workspace as well
-            close all;   % close all figures
-        end
-        
         function [setfiles, filesPRE, filesPOST] = createfolders(batchFolder,previousFolderPath,folderName,counter)
             %------ create the folders where the pipeline will run
             %------ filePRE = strcat(basefolder,'\', type, '\pre'); %copies files
@@ -285,26 +295,45 @@ classdef autopipeliner_v1b
 
 %This works with the below code for loading files
 %EEG =  pop_loadset(file1(i).name, FileInput1,  'all','all','all','all','auto');
+%         
+%         function [batchFolder] = createBatchFolder(path,files,folderName) %works!!!
+%             %------ create the folders where the pipeline will run
+%             %------ filePRE = strcat(basefolder,'\', type, '\pre'); %copies files
+%             %------ one can I turn it off)
+%             
+%             basefolder = path;
+%             
+%             mkdir (folderName)
+%             fdtfiles = dir('*.fdt');
+%             batchFolder = strcat(basefolder,'\', folderName);
+%             
+%             % --- add: compare files
+%             parfor i=1:length(files)
+%                 copyfile(files(i).name, batchFolder)
+%                 copyfile(fdtfiles(i).name, batchFolder);
+%             end
+%          
+%         end
         
-        function [batchFolder] = createBatchFolder(path,files,folderName) %works!!!
-            %------ create the folders where the pipeline will run
-            %------ filePRE = strcat(basefolder,'\', type, '\pre'); %copies files
-            %------ one can I turn it off)
-            
-            basefolder = path;
-            
-            mkdir (folderName)
-            fdtfiles = dir('*.fdt');
-            batchFolder = strcat(basefolder,'\', folderName);
-            
-            % --- add: compare files
-            parfor i=1:length(files)
-                copyfile(files(i).name, batchFolder)
-                copyfile(fdtfiles(i).name, batchFolder);
+
+        function emptyTrash()
+            trashBin = dir('bin*');
+            trashMat = dir('*.mat');
+            parfor i=1:length(trashBin)
+                delete (trashBin(i).name)
             end
-         
-        end
+            parfor i=1:length(trashMat)
+                delete (trashMat(i).name)
+            end
+        end %%%works
         
+        function clean() %works
+            clc;         % clear command window
+            clear all;
+            evalin('base','clear all');  % clear base workspace as well
+            close all;   % close all figures
+        end
+
         function txt(content) %doesnt work anymore 
             number = '6183034686@vtext.com';
             

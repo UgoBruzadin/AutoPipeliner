@@ -8,18 +8,10 @@ if nargin < 2
         return;
     end
 end
-
-% if components == 'all'
-%     components = [1:size(EEG.icawinv,2)];
-% end
     
 % --- make a copy of EEG
 EEG1 = EEG;
-%EEG1 = pop_subcomp(EEG1);
-% --- remove a component
-%[EEG1] = pop_subcomp(EEG1, components);
-%THIS STILL NEEDS WORK
-%NEEDS TO REMOVE ONLY COMPONENTS THAT MET THRESHOLD!!!
+
 FinalFlags(size(components,1),EEG.trials) = zeros();
 
 for i=1:length(components)
@@ -41,32 +33,8 @@ for i=1:length(components)
     FlagV = abs(Z) > 3;
     % --- finds the trial numbers flagged above
     FlagsV = find(FlagV);
-    
-    % --- this method finds abnormal trials by peaks above 5 SDV
-    
-    componentData = EEG.icaact(components(i), :, :);
-    
-    componentData = reshape(componentData,EEG.pnts,EEG.trials);
-    % --- makes an array with absolute values
-    compAbs = abs(componentData);
-    
-    % --- gets the maximum value seen in the trial
-    maxT = max(compAbs(:,:));
-    % --- gets the mean for that trial
-    avgT = mean(compAbs(:,:));
-    % --- gets the standard dev for the trial
-    stdT = std(compAbs(:,:));
-    % --- gets the threshold cut for this trial given std
-    threshT = avgT + (5 * stdT);
-    % --- makes a bol list if spike is bigger than the threshold
-    FlagS = maxT > threshT;
-    % --- gets the number of the components flagged
-    FlagsS = find(FlagS);
-    % --- sums the peak trials with the trials by variance
-    TotalFlags = FlagV; %I removed the peak removal method for now
-    %TotalFlags = FlagV + FlagS;
     % --- passes the flagged trials to upper variable
-    FinalFlags(i,:) = TotalFlags;
+    FinalFlags(i,:) = FlagsV;
 end
 
 TrialsforRj = find(FinalFlags);
@@ -99,6 +67,5 @@ if Flags %NEEDS FIXING
 else
     fprintf(strcat('No changes occurred /r'));
 end
-
     EEG = pop_loadset(EEG);
 end

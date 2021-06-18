@@ -69,10 +69,10 @@ if ~exist('version', 'var')
 end
 
 if length(EEG) > 1
-    %[ EEG, com ] = eeg_eval( 'iclabel', EEG, 'params', { version } );
+    [ EEG, com ] = eeg_eval( 'iclabel', EEG, 'params', { version } );
     %varargout = {com};
 else
-    %EEG = iclabel(EEG, version);
+    EEG = iclabel(EEG, version);
     %varargout = {['EEG = pop_iclabel(EEG, ' version ');']};
 end
 

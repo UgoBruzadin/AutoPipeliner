@@ -42,29 +42,6 @@ for i=1:length(components)
     % --- finds the trial numbers flagged above
     FlagsV = find(FlagV);
     
-    % --- this method finds abnormal trials by peaks above 5 SDV
-    
-    componentData = EEG.icaact(components(i), :, :);
-    
-    componentData = reshape(componentData,EEG.pnts,EEG.trials);
-    % --- makes an array with absolute values
-    compAbs = abs(componentData);
-    
-    % --- gets the maximum value seen in the trial
-    maxT = max(compAbs(:,:));
-    % --- gets the mean for that trial
-    avgT = mean(compAbs(:,:));
-    % --- gets the standard dev for the trial
-    stdT = std(compAbs(:,:));
-    % --- gets the threshold cut for this trial given std
-    threshT = avgT + (5 * stdT);
-    % --- makes a bol list if spike is bigger than the threshold
-    FlagS = maxT > threshT;
-    % --- gets the number of the components flagged
-    FlagsS = find(FlagS);
-    % --- sums the peak trials with the trials by variance
-    TotalFlags = FlagV; %I removed the peak removal method for now
-    %TotalFlags = FlagV + FlagS;
     % --- passes the flagged trials to upper variable
     FinalFlags(i,:) = TotalFlags;
 end
