@@ -1,9 +1,0 @@
-function [EEG, acronym] = pipe_interp(EEG,content)
-
-if nargin < 2
-    
-
-ChansForInterp = outlierChannelsFrequency(EEG,minfreq,maxfreq,sdv)
-
-
-end

@@ -13,6 +13,7 @@ end
 EEG1 = EEG;
 
 FinalFlags(size(components,1),EEG.trials) = zeros();
+FinalFlagsT = [];
 
 for i=1:length(components)
 
@@ -34,38 +35,37 @@ for i=1:length(components)
     % --- finds the trial numbers flagged above
     FlagsV = find(FlagV);
     % --- passes the flagged trials to upper variable
-    FinalFlags(i,:) = FlagsV;
+    FinalFlags(i,:) = FlagV;
+    %FinalFlagsT = cat(1,FinalFlagsT,FlagsV);
 end
 
-TrialsforRj = find(FinalFlags);
+trialsSum = sum(FinalFlags,1);
+TrialsforRj = find(trialsSum);
 
 if TrialsforRj
-    
-for j=1:length(TrialsforRj)
-    % --- find components rejected for every trial
-    Flags = find(FinalFlags(:,TrialsforRj(j)));
-    % --- reject the components
-    EEG1 = EEG;
-    EEG1 = pop_subcomp(EEG1,components(Flags));
-    % --- basically interpolates epochs from component removals
-    % --- if there are any trial flagged, imputes those trials!
-    % --- substitutes the specified epochs from the copy
-    
-    if Flags
-        fprintf(strcat(' Rejected trials _', strcat(num2str(Flags)), ' from component _', strcat(num2str(components(i)))), '/r');
-        EEG.data(:,:,TrialsforRj(j)) = EEG1.data(:,:,TrialsforRj(j)); 
-    else
-        fprintf(strcat('No components rejected /r'));
+    for j = TrialsforRj
+        % --- find components rejected for every trial
+        FlagsCom = find(FinalFlags(:,j));
+        % --- reject the components
+        EEG1 = EEG;
+        EEG1 = pop_subcomp(EEG1,components(FlagsCom));
+        % --- basically interpolates epochs from component removals
+        % --- if there are any trial flagged, imputes those trials!
+        % --- substitutes the specified epochs from the copy
+        
+        if FlagsCom
+            fprintf(strcat(' Rejected trials _', strcat(num2str(j)), ' from component _', strcat(num2str(FlagsCom))), '\r');
+            EEG.data(:,:,j) = EEG1.data(:,:,j);
+        else
+            fprintf(strcat('No components rejected r'));
+        end
     end
-
-
-
+EEG.reject.gcompreject = [];
 end
-end
-if Flags %NEEDS FIXING
-    EEG = pop_saveset(EEG);
-else
-    fprintf(strcat('No changes occurred /r'));
-end
-    EEG = pop_loadset(EEG);
-end
+% if FlagsCom %NEEDS FIXING
+%     EEG = pop_saveset(EEG);
+% else
+%     fprintf(strcat('No changes occurred /r'));
+% end
+%     EEG = pop_loadset(EEG);
+ end
