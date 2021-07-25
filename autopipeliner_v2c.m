@@ -49,9 +49,14 @@ classdef autopipeliner_v2c
             
             basefolder = path;
             cd(path)
-            mkdir (folderName)
+            if ~isfolder(strcat(pwd,foldername))
+                mkdir (folderName)
+            end
             % --- this huge 'if' creates a list of the files selected
             % -- I wish it was smaller but this does the trick.
+            
+            if ~isfolder(strcat(pwd,foldername,'/Pre/'))
+                
             if ~isstruct(files) % if files aren't a directory
                 allfiles = strcat(files{1:end}); % gets the files in one word
                 endings = strfind(allfiles,'.set'); % finds the '.sets' positions
@@ -81,7 +86,7 @@ classdef autopipeliner_v2c
                 copyfile(setfiles(i).name, batchFolder)
                 copyfile(fdtfiles(i).name, batchFolder);
             end
-         
+            end
         end
         
         function [filesFolder] = pipeline(Batch,batchFolder) %store the functions to be rolled in this batch
@@ -101,7 +106,7 @@ classdef autopipeliner_v2c
                 
                 % --- run Function for each script in a batch
                 fprintf('running Function');
-                [filesFolder] = autopipeliner   _v2c.Function(batchFolder,Scripts(i),filesFolder,scriptCounter);
+                [filesFolder] = autopipeliner_v2c.Function(batchFolder,Scripts(i),filesFolder,scriptCounter);
                 scriptCounter = scriptCounter + 1;%adds one folder to the counter
             end
         end
@@ -128,6 +133,7 @@ classdef autopipeliner_v2c
             folderLetter = char(counter+64); %names the folder initial letter (A, B, etc)!
             folderNameDate = strcat(folderLetter,'-',char(Functions(1)),'-',char(t)); %makes folder full name
             folderName = strcat(folderLetter,'-',char(Functions(1))); %makes folder partial name
+            
             [files, filePRE, filePOST] = autopipeliner_v2c.createfolders(batchFolder,filesFolder,folderNameDate,counter); %creates a folder for the pipeline
             % --- moves down to scripts new directory
             cd(filePOST);

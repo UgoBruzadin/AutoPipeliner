@@ -33,13 +33,15 @@ all = {Filter, Nfilter, nfilterAMPS, ICLREJ, ICheart, BSS, HM99, EP2448, EP4096,
 %maybe: BSS, 
 %example; Batch1 = {E2,F}; Batch2 = {E3,F,G};
 
-batch1 = {EP4096,ICA};
+batch1 = {EP4096,HM99,ICA};
+
 batch2 = {ICheart,HM99};
+
 batch3 = {ICA,ICheart,HM99,BSS,PCA50};
 %batch2 = {Nfilter,Filter};
 %[batchFolder, OGFolder] = autopipeliner_v2a.batches({batch1,batch2},path);
 %cd strcat(path)
-[batchFolder, OGFolder] = autopipeliner_v2c.batches({batch3},path,1,files);
+[batchFolder, OGFolder] = autopipeliner_v2e.batches({batch1},path,1,files);
 
 %[batchFolder, OGFolder] = autopipeliner_v2a.batches({batch2,batch3},path,2,files);
 

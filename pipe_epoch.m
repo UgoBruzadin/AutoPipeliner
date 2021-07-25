@@ -8,7 +8,11 @@ function [EEG, acronym] = pipe_epoch(EEG,content) %content must be 1.array of na
     EventName = EventName{:};
     Epochs = content(2);
     Epochs = Epochs{:};
-    if EEG.event(1).type == EventName
+    
+    if isempty(EEG.event)
+        EEG.event = EEG.urevent;
+    end
+    if contains(EEG.event(1).type,EventName)
         EEG = pop_par_epoch( EEG, { EventName }, [Epochs(1) Epochs(2)], 'newname', 'Neuroscan EEG data epochs', 'epochinfo', 'yes');
         acronym = strcat('EP',num2str(EEG.trials));
     else
