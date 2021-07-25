@@ -10,18 +10,19 @@ if nargin > 1
 % --- otherwise, runs an ICA
 else
     %EEG = IC; %THIS IS A STUPID FIX< REARRENGE THE EEG!
-    A = rand(1)*2;
-     if A > 1.6
-        try EEG = pop_par_runica(EEG,'icatype','binica','extended', 1, 'verbose','off');
-        catch EEG = pop_par_runica(EEG,'icatype','binica','extended', 1, 'verbose','off');
+    %A = rand(1)*2;
+     %if A > 1.6
+        try 
+        EEG = pop_par_runica(EEG,'icatype','binica','extended', 1, 'verbose','off');
+        catch EEG = pop_par_runica(EEG,'icatype','cudaica','extended', 1, 'verbose','off');
         end
         IC = size(EEG.icawinv,1);
-     else
-         try EEG = pop_par_runica(EEG,'icatype','cudaica','extended', 1, 'verbose','off');
-         catch EEG = pop_par_runica(EEG,'icatype','cudaica','extended', 1, 'verbose','off');
-         end
-         IC = size(EEG.icawinv,1);
-     end
+%      else
+%          try EEG = pop_par_runica(EEG,'icatype','cudaica','extended', 1, 'verbose','off');
+%          catch EEG = pop_par_runica(EEG,'icatype','cudaica','extended', 1, 'verbose','off');
+%          end
+%          IC = size(EEG.icawinv,1);
+%      end
 end
     %EEG = eeg_checkset(EEG);
     EEG = pop_iclabel(EEG);
