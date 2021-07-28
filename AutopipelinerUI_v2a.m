@@ -5,7 +5,7 @@
 Filter = {'filter',2, 55}; %works
 Nfilter = {'nfilter',59,61}; %works
 nfilterAMPS = {'nfilterAMPS'}; %works
-ICLREJ = {'iclrej', 1};
+ICREJ = {'icrej'};
 ICheart = {'icheart',0.80};
 BSS = {'bss'};
 HM99 = {'HM99'};
@@ -25,7 +25,7 @@ J = {'interpolate'}; %needs to be retested
 Baseline = {'baseline',[]}; %needs to be retested
 FFT = {'fft'};
 
-all = {Filter, Nfilter, nfilterAMPS, ICLREJ, ICheart, BSS, HM99, EP2448, EP4096, Baseline, ICA, dipfit, PCA50, FFT};
+all = {Filter, Nfilter, nfilterAMPS, ICREJ, ICheart, BSS, HM99, EP2448, EP4096, Baseline, ICA, dipfit, PCA50, FFT};
 
 [files,path] = uigetfile('*.set',...
     'Select One or More Files', ...
@@ -33,7 +33,7 @@ all = {Filter, Nfilter, nfilterAMPS, ICLREJ, ICheart, BSS, HM99, EP2448, EP4096,
 %maybe: BSS, 
 %example; Batch1 = {E2,F}; Batch2 = {E3,F,G};
 
-batch1 = {EP4096,HM99,ICA};
+batch1 = {ICREJ,ICA};
 
 batch2 = {ICheart,HM99};
 

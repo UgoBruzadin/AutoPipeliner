@@ -132,14 +132,14 @@ classdef autopipeliner_v2e
             cd (strcat(pwd, '/Pre'));
             filesPRE = pwd;
 
-            files = getNewFiles(previousFolderPath,filesPRE,'*.set','*.set',pwd);
+            files = getNewFiles(,filesPRE,'*.set','*.set',pwd);
             %fdtfiles = getNewFiles(filesPRE,pwd,'*.fdt','*.fdt',pwd);
             %setfiles = getNewFiles(filesPRE,pwd,'*.set','*.set',pwd);
             %fdtfiles = dir('*.fdt'); %gets fdt files
             %setfiles = dir('*.set'); %gets set files
             %filesPRE = strcat(filesPOST,'\pre');
             if ~isempty(files)
-                cd(previousFolderPath)
+                cd(batchFolder)
                 parfor j=1:length(files)
                     movefile(files(j).name, filesPRE)
                 end
@@ -147,22 +147,15 @@ classdef autopipeliner_v2e
             
             % --- if the pipeline has already started
             % --- check if the process is midway through
-            %             if counter > 1
-            %                 cd(filesPOST)
-            %                 filesPOSTdir = dir('*.set');
-            %                 if ~isempty(filesPOSTdir)
-            %                     fdtfiles = getNewFiles(pwd,filesPRE,'*.fdt','*.fdt',filesPRE);
-            %                     setfiles = getNewFiles(pwd,filesPRE,'*.set','*.set',filesPRE);
-            %                 end
-            %             end
-            cd(filesPOST)
-            if ~isfile('done.txt')
-                cd(filesPRE);
-                files = getNewFiles(filesPRE,filesPOST,'*.set','*.set',pwd);
-            else
-                cd(filesPRE);
-                files = [];
-            end
+%             if counter > 1
+%                 cd(filesPOST)
+%                 filesPOSTdir = dir('*.set');
+%                 if ~isempty(filesPOSTdir)
+%                     fdtfiles = getNewFiles(pwd,filesPRE,'*.fdt','*.fdt',filesPRE);
+%                     setfiles = getNewFiles(pwd,filesPRE,'*.set','*.set',filesPRE);
+%                 end
+%             end
+              files = getNewFiles(filesPRE,filesPOST,'*.set','*.set',pwd);
         end
         
         function [filePOST] = Function(batchFolder,Scripts,filesFolder,counter) %magic function, runs the code asked!
@@ -205,25 +198,24 @@ classdef autopipeliner_v2e
                 % -- functions are always named "pipe_" and contain the
                 % -- name and instructions to be performed
                 %try
-                % --- action is creates a function out of string in
-                % -- script(1) and runs it the script it refers to
-                action = str2func(strcat('pipe_',char(Functions(1)))); %this call a function inside this function with the name asked for!
-                if length(Functions) > 1
-                    %;
-                    [EEG, acronym] = action(EEG, Functions2); %this is where the function runs the asked code!
-                else
-                    [EEG, acronym] = action(EEG); %this is where the function runs the asked code!
-                end
-                % --- makes a new name for the file, adding the acronym
-                % -- to the name
-                
-                newname = strcat(files(i).name(1:end-4), [acronym], '.set');
-                % --- saves file with new name on script's folder
-                EEG = pop_par_saveset(EEG, 'filename', [newname], 'filepath', filePOST);
+                    % --- action is creates a function out of string in
+                    % -- script(1) and runs it the script it refers to
+                    action = str2func(strcat('pipe_',char(Functions(1)))); %this call a function inside this function with the name asked for!
+                    if length(Functions) > 1
+                        %;
+                        [EEG, acronym] = action(EEG, Functions2); %this is where the function runs the asked code!
+                    else
+                        [EEG, acronym] = action(EEG); %this is where the function runs the asked code!
+                    end
+                    % --- makes a new name for the file, adding the acronym
+                    % -- to the name
+                    
+                    newname = strcat(files(i).name(1:end-4), [acronym], '.set');
+                    % --- saves file with new name on script's folder
+                    EEG = pop_par_saveset(EEG, 'filename', [newname], 'filepath', filePOST);
 
                 EEG = pop_delset(EEG,1); %fixed and added 2/3/2020
             end
-            save('done.txt');
         end
         
 %         function [filePOST] = parFunction(batchFolder,scripts,filesFolder,counter) %magic function, runs the code asked!
