@@ -224,6 +224,7 @@ classdef autopipeliner_v2e
                 EEG = pop_delset(EEG,1); %fixed and added 2/3/2020
             end
             save('done.txt');
+            send_ugoslabgmail_alert('One Process Done',folderName)
         end
         
 %         function [filePOST] = parFunction(batchFolder,scripts,filesFolder,counter) %magic function, runs the code asked!

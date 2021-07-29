@@ -41,6 +41,7 @@ batch3 = {ICA,ICheart,HM99,BSS,PCA50};
 %batch2 = {Nfilter,Filter};
 %[batchFolder, OGFolder] = autopipeliner_v2a.batches({batch1,batch2},path);
 %cd strcat(path)
+
 [batchFolder, OGFolder] = autopipeliner_v2e.batches({batch1},path,1,files);
 
 %[batchFolder, OGFolder] = autopipeliner_v2a.batches({batch2,batch3},path,2,files);
