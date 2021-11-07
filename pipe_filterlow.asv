@@ -6,9 +6,7 @@ fprintf('filtering the data \r');
     %EEG = eeg_checkset( EEG );
     EEG = pop_par_eegfiltnew(EEG, 'hicutoff',cell2mat(content(1)),'plotfreqz', 0);
     acronym = char(strcat('L',mat2str(cell2mat(content(1)))));
+    pop_par_spectopo(EEG, 1, [EEG.xmin*10^3  EEG.xmax*10^3], 'EEG' , 'freq', [low 5 6 7 8 9 10 11 12 18 30 high], 'freqrange',[2 55], 'electrodes','off');
+    saveas(gcf,strcat(EEG.setname.name(1:end-4),'_FFT.jpg'));
     
-    figure; pop_par_spectopo(EEG, 1, [EEG.xmin*10^3  EEG.xmax*10^3], 'EEG' , 'freq', [2 4 6 8 9 10 11 12 14 16 18 22], 'freqrange',[2 26], 'electrodes','off');
-    saveas(gcf,strcat(EEG.filename(1:end-4),'_FFT.jpg'));
-    
-    EEG.high = cell2mat(content(1));
 end

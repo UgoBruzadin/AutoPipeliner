@@ -1,9 +1,9 @@
 function [EEG, acronym] = pipe_fft(EEG,low,high) %works; by ugo 2/3/2020 7:15pm
     if nargin < 2
         if isfield(EEG,'low')
-            low = EEG.low;
+        low = EEG.low;
         else
-            low = 2;
+        low = 2;
         end
     end
     if nargin < 3
@@ -13,7 +13,7 @@ function [EEG, acronym] = pipe_fft(EEG,low,high) %works; by ugo 2/3/2020 7:15pm
             high = 55;
         end
     end
-    if low ~= 2
+    if low == 2
         ffts = [18 20 22 24 26 32 36 40 44 48 52];
     else
         ffts = [2 4 6 8 9 10 11 12 14 16 18 22];

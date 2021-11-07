@@ -11,7 +11,7 @@ if nargin > 1
 % --- otherwise, runs an ICA
 else
     try EEG = pop_par_runica(EEG,'icatype','binica','extended', 1,'verbose','off');
-    catch EEG = pop_par_runica(EEG,'icatype','cudaica','extended', 1,'verbose','off');
+    catch EEG = pop_par_runica(EEG,'icatype','binica','extended', 1,'verbose','off');
     end
     IC = size(EEG.icawinv,1);
 %     A = rand(1)*2;

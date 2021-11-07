@@ -1,8 +1,10 @@
 
 function [EEG, acronym] = pipe_bss(EEG)
     
-    %eventully neds to calculate the ideal bss!
-    EEG = pop_par_autobssemg( EEG, [16.384], [16.384], 'bsscca', {'eigratio', [1000000]}, 'emg_psd', {'ratio', [10],'fs', [EEG.srate],'femg', [15],'estimator',spectrum.welch,'range', [0  14]});
+window = EEG.trials*EEG.pnts/EEG.srate;
 
-    acronym = 'BSS';
+[EEG] = pop_autobssemg( EEG, [window], [window], 'bsscca', {'eigratio', [1000000]}, 'emg_psd', {'ratio', [10],'fs', [250],'femg', [15],'estimator',spectrum.welch,'range', [0  49]});
+
+acronym = 'BSS';
+
 end

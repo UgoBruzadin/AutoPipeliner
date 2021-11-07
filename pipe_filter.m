@@ -6,4 +6,7 @@ fprintf('filtering the data \r');
     %EEG = eeg_checkset( EEG );
     EEG = pop_par_eegfiltnew(EEG, 'hicutoff',cell2mat(content(2)),'plotfreqz', 0);
     acronym = char(strcat('H',mat2str(cell2mat(content(1))),'L',mat2str(cell2mat(content(2)))));
+    
+    EEG.high = cell2mat(content(1));
+    EEG.low = cell2mat(content(2));
 end
