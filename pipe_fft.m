@@ -19,8 +19,8 @@ function [EEG, acronym] = pipe_fft(EEG,low,high) %works; by ugo 2/3/2020 7:15pm
         ffts = [2 4 6 8 9 10 11 12 14 16 18 22];
     end
        
-    pop_par_spectopo(EEG, 1, [EEG.xmin*10^3  EEG.xmax*10^3], 'EEG' , 'freq', ffts, 'freqrange',[low high], 'electrodes','off');
-    saveas(gcf,strcat(EEG.setname.name(1:end-4),'_FFT.jpg'));
+    figure; pop_par_spectopo(EEG, 1, [EEG.xmin*10^3  EEG.xmax*10^3], 'EEG' , 'freq', ffts, 'freqrange',[low high], 'electrodes','off');
+    saveas(gcf,strcat(EEG.filename(1:end-4),'_FFT.jpg'));
     close all;
     fprintf('saving FFTs')
     acronym = '';

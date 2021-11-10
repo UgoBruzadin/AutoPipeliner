@@ -3,10 +3,18 @@ function [EEG, acronym] = pipe_ica(EEG,IC) %works
 try
 if nargin > 1
     if iscell(IC)
-        IC = cell2mat(IC);
+        IC = IC{:};
     end
+    % STOPED HERE
+    if isstring(IC)
+        IC2 = size(EEG.icaact,2);
+        try EEG = pop_par_runica(EEG,'icatype','binica', 'extended', 1, 'pca', IC2-1, 'verbose','off');
+        catch EEG = pop_par_runica(EEG,'icatype','binica','extended', 1, 'pca', IC2-1, 'verbose','off');
+        end
+    else
     try EEG = pop_par_runica(EEG,'icatype','binica', 'extended', 1, 'pca', IC, 'verbose','off');
     catch EEG = pop_par_runica(EEG,'icatype','binica','extended', 1, 'pca', IC, 'verbose','off');
+    end
     end
 % --- otherwise, runs an ICA
 else
