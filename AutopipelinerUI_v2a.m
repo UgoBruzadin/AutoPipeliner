@@ -5,7 +5,7 @@
 Filter = {'filter',2, 55}; %works
 HighPass = {'filterhigh',18}; %works
 LowPass = {'filterlow',22}; %works
-
+LP40 = {'filterlow',40}; %works
 Nfilter = {'nfilter',59,61}; %works
 nfilterAMPS = {'nfilterAMPS'}; %works
 ICREJ = {'icrej',0.9};
@@ -17,6 +17,8 @@ EP2448 = {'epoch','DIN ',[0.400, 2.448]}; %works
 EP4096 = {'epoch','DIN ',[-1.000, 3.096]};
 ICA = {'ica'};
 dipfit = {'dipfit'};
+PCAN1 = {'ica','n'};
+PCA30 = {'ica',30};
 PCA35 = {'ica',35};
 PCA42 = {'ica',42};
 PCA20 = {'ica',20};
@@ -33,7 +35,7 @@ Baseline = {'baseline',[]}; %needs to be retested
 FFT = {'fft'};
 test = {'test',[]};
 
-all = {HighPass, LowPass, Filter, Nfilter, nfilterAMPS, ICREJ, PCA42, PCA20, PCA40, ICheart, BSS, HM99, EP2448, EP4096, Baseline, ICA, dipfit, PCA35, PCA50, FFT};
+all = {HighPass, LowPass,PCAN1, LP40, Filter, Nfilter, nfilterAMPS, ICREJ, PCA42, PCA20, ICheart, BSS, HM99, EP2448, EP4096, Baseline, ICA, dipfit, PCA35, PCA50, FFT};
 
 [files,path] = uigetfile('*.set',...
     'Select One or More Files', ...
@@ -45,15 +47,22 @@ testbatch = {test, test, test,test};
 
 %example; Batch1 = {E2,F}; Batch2 = {E3,F,G};
  
- batch1 = {BSS,PCA50,ICheart,PCA42,ICREJ2,HM99};
- batch2 = {LowPass,EP4096,BSS,PCA35,ICREJ2,EPREJ,FFT};
+%  batch1 = {BSS,PCA50,ICheart,PCA42,ICREJ2,HM99};
+%  batch2 = {LowPass,EP4096,BSS,PCA35,ICREJ2,EPREJ,FFT};
+%  batch3 = {HighPass,EP4096,BSS,PCA20,ICREJ2,EPREJ,FFT};
+%  
+% %  tic
+%  [path, OGFolder] = autopipeliner_v3c.newBatches({batch1},path,files);
+%  [path, OGFolder] = autopipeliner_v3c.newBatches({batch2,batch3},path,files);
+% % 
+% runtime = toc
+ batch1 = {ICA,ICREJ};
+ %batch1 = {LP40,HM99,BSS,PCA35,ICheart,ICREJ2,BSS,PCAN1,FFT};
+ batch2 = {EP4096,BSS,EPREJ,PCA35,ICREJ2,PCA20,ICREJ2,FFT};
  batch3 = {HighPass,EP4096,BSS,PCA20,ICREJ2,EPREJ,FFT};
  
 %  tic
+ %[path, OGFolder] = autopipeliner_v3c.newBatches({{EP4096}},path,files);
  [path, OGFolder] = autopipeliner_v3c.newBatches({batch1},path,files);
- [path, OGFolder] = autopipeliner_v3c.newBatches({batch2,batch3},path,files);
-% 
-% runtime = toc
-
 
 
